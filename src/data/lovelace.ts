@@ -2,9 +2,15 @@ import {
   Connection,
   getCollection,
   HassEventBase,
+  HassConfig,
+  HassEntities,
 } from "home-assistant-js-websocket";
 import { HASSDomEvent } from "../common/dom/fire_event";
 import { HomeAssistant } from "../types";
+import { AreaRegistryEntry } from "./area_registry";
+import { DeviceRegistryEntry } from "./device_registry";
+import { EntityRegistryEntry } from "./entity_registry";
+import { LocalizeFunc } from "../common/translations/localize";
 
 export interface LovelacePanelConfig {
   mode: "yaml" | "storage";
@@ -12,6 +18,11 @@ export interface LovelacePanelConfig {
 
 export interface LovelaceConfig {
   title?: string;
+  // When specified, we ignore views but instead execute strategy
+  strategy?: {
+    name: string;
+    options: { [key: string]: unknown };
+  };
   views: LovelaceViewConfig[];
   background?: string;
 }
@@ -69,6 +80,11 @@ export interface LovelaceDashboardCreateParams
 export interface LovelaceViewConfig {
   index?: number;
   title?: string;
+  // When specified, we ignore badges + cards but instead execute strategy
+  strategy?: {
+    name: string;
+    options: { [key: string]: unknown };
+  };
   badges?: Array<string | LovelaceBadgeConfig>;
   cards?: LovelaceCardConfig[];
   path?: string;
@@ -159,6 +175,31 @@ type LovelaceUpdatedEvent = HassEventBase & {
     mode: "yaml" | "storage";
   };
 };
+
+export interface LovelaceDashboardStrategy {
+  generateDashboard(info: {
+    lovelace: LovelaceConfig;
+    config: HassConfig;
+    areaEntries: AreaRegistryEntry[];
+    deviceEntries: DeviceRegistryEntry[];
+    entityEntries: EntityRegistryEntry[];
+    entities: HassEntities;
+    localize: LocalizeFunc;
+  }): Partial<LovelaceConfig>;
+}
+
+export interface LovelaceViewStrategy {
+  generateView(info: {
+    view: LovelaceViewConfig;
+    lovelace: LovelaceConfig;
+    config: HassConfig;
+    areaEntries: AreaRegistryEntry[];
+    deviceEntries: DeviceRegistryEntry[];
+    entityEntries: EntityRegistryEntry[];
+    entities: HassEntities;
+    localize: LocalizeFunc;
+  }): Partial<LovelaceViewConfig>;
+}
 
 export const fetchResources = (conn: Connection): Promise<LovelaceResource[]> =>
   conn.sendMessagePromise({
