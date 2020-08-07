@@ -170,7 +170,7 @@ class HaSidebar extends LitElement {
               </mwc-icon-button>
             `
           : ""}
-        <span class="title">Home Assistant</span>
+        <span class="title">DOMUS</span>
       </div>
       <paper-listbox
         attr-for-selected="data-panel"
